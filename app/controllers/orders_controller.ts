@@ -8,7 +8,7 @@ import Address from '#models/address'
 export default class OrderController {
   async store({ params, request, response }: HttpContext) {
     const userId = Number(params.userId)
-
+   
     if (!userId || isNaN(userId)) {
       return response.badRequest({ message: 'Invalid userId' })
     }
@@ -79,7 +79,7 @@ export default class OrderController {
       order,
     })
   }
- //ALL orders
+
   async Allorder({ params, response }: HttpContext) {
     const userId = Number(params.userId)
 
