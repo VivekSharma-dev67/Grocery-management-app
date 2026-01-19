@@ -12,7 +12,7 @@ export default class Address extends BaseModel {
   declare userId:number
 
   @column()
-  declare houseNo:number
+  declare houseNo:string
 
   @column()
   declare street:string
@@ -21,10 +21,10 @@ export default class Address extends BaseModel {
   declare city:string
 
   @column()
-  declare pincode:number
+  declare pincode:string
 
   @column()
-  declare phoneNo:number
+  declare phoneNo:string
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

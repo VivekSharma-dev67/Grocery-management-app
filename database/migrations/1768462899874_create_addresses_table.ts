@@ -7,19 +7,20 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table
-        .integer('user_id')                     
-        .unsigned()                                 
-        .notNullable()                              
-        .references('id')                           
-        .inTable('users')  
+        .integer('user_id')
+        .unsigned()
+        .notNullable()
+        .references('id')
+        .inTable('users')
 
-      table.integer('house_no')
+      table.string('house_no')          
       table.string('street')
       table.string('city')
-      table.integer('pincode')
-      table.integer('phone_no')
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.string('pincode')           
+      table.string('phone_no')          
+
+      table.timestamp('created_at').nullable()
+      table.timestamp('updated_at').nullable()
     })
   }
 

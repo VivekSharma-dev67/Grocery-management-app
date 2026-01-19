@@ -1,114 +1,83 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import CartService from '../services/Cart_service.js'  
+import { inject } from '@adonisjs/core'
 
-import Cart from '#models/cart'
-import CartItem from '#models/cart_item'
-
+@inject()
 export default class CartController {
+  constructor(protected cartService: CartService) {}
+
   async show({ params, response }: HttpContext) {
     const userId = Number(params.userId)
-
-    if (!userId || isNaN(userId)) {
-      return response.badRequest({ message: 'Invalid userId' })
+    if (isNaN(userId)) {
+      return response.badRequest({ error: 'Invalid userId' })
     }
 
-    let cart = await Cart.query()
-      .where('user_id', userId)
-      .preload('items', (query) => {
-        query.preload('product')
-      })
-      .first()
-
-    if (!cart) {
-      cart = await Cart.create({ userId })
+    try {
+      const cart = await this.cartService.getOrCreateCart(userId)
+      return response.ok(cart)
+    } catch (error) {
+      console.error('Failed to fetch cart:', error)
+      return response.internalServerError({ error: 'Something went wrong' })
     }
-
-    return cart
   }
 
-  async add({ request, params, response }: HttpContext) {
+  async add({ params, request, response }: HttpContext) {
     const userId = Number(params.userId)
-
-    if (!userId || isNaN(userId)) {
-      return response.badRequest({ message: 'Invalid userId' })
+    if (isNaN(userId)) {
+      return response.badRequest({ error: 'Invalid userId' })
     }
 
-    const productId = Number(request.input('productId'))
-    const quantity = Number(request.input('quantity', 1))
-
-    if (!productId || quantity < 1) {
-      return response.badRequest({ message: 'Invalid productId or quantity' })
+    try {
+      const cartItem = await this.cartService.addItem({ request } as any, userId)  
+      return response.created(cartItem)
+    } catch (error: any) {
+      console.error('Failed to add to cart:', error)
+      return response.internalServerError({ error: 'Something went wrong' })
     }
-
-    let cart = await Cart.query().where('user_id', userId).first()
-    if (!cart) {
-      cart = await Cart.create({ userId })
-    }
-
-    let cartItem = await CartItem.query()
-      .where('cart_id', cart.id)
-      .where('product_id', productId)
-      .first()
-
-    if (cartItem) {
-      cartItem.quantity += quantity
-      await cartItem.save()
-    } else {
-      cartItem = await CartItem.create({
-        cartId: cart.id,
-        productId,
-        quantity,
-      })
-    }
-
-    await cartItem.load('product')
-
-    return response.created(cartItem)
   }
 
   async update({ params, request, response }: HttpContext) {
-    const userId = Number(params.userId)
+  const userId = Number(params.userId)
+  const itemId = Number(params.id)
 
-    if (!userId || isNaN(userId)) {
-      return response.badRequest({ message: 'Invalid userId' })
-    }
-
-    const quantity = Number(request.input('quantity'))
-
-    if (quantity < 1) {
-      return response.badRequest({ message: 'Quantity at least 1 honi chahiye' })
-    }
-
-    const cart = await Cart.query().where('user_id', userId).firstOrFail()
-
-    const cartItem = await CartItem.query()
-      .where('cart_id', cart.id)
-      .where('id', params.id)
-      .firstOrFail()
-
-    cartItem.quantity = quantity
-    await cartItem.save()
-
-    await cartItem.load('product')
-
-    return cartItem
+  if (isNaN(userId) || isNaN(itemId)) {
+    return response.badRequest({ error: 'Invalid userId or itemId' })
   }
 
-  async remove({ params, response }: HttpContext) {
-    const userId = Number(params.userId)
+  try {
+    const quantity = Number(request.input('quantity'))
 
-    if (!userId || isNaN(userId)) {
-      return response.badRequest({ message: 'Invalid userId' })
+    if (isNaN(quantity) || quantity < 1) {
+      return response.badRequest({ error: 'Quantity must be at least 1' })
     }
 
-    const cart = await Cart.query().where('user_id', userId).firstOrFail()
+    const updatedItem = await this.cartService.updateItem(userId, itemId, quantity)
 
-    const cartItem = await CartItem.query()
-      .where('cart_id', cart.id)
-      .where('id', params.id)
-      .firstOrFail()
+    return response.ok(updatedItem)
+  } catch (error: any) {
+    console.error('Cart update error:', error)
 
-    await cartItem.delete()
+    if (error.message?.includes('firstOrFail')) {
+      return response.notFound({ error: 'Cart or item not found' })
+    }
 
-    return response.noContent()
+    return response.internalServerError({ error: 'Something went wrong' })
+  }
+}
+  async remove({ params, response }: HttpContext) {
+    const userId = Number(params.userId)
+    const itemId = Number(params.id)
+
+    if (isNaN(userId) || isNaN(itemId)) {
+      return response.badRequest({ error: 'Invalid userId or itemId' })
+    }
+
+    try {
+      await this.cartService.removeItem(userId, itemId)
+      return response.noContent()
+    } catch (error: any) {
+      console.error('Failed to remove cart item:', error)
+      return response.internalServerError({ error: 'Something went wrong' })
+    }
   }
 }

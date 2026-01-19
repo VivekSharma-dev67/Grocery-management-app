@@ -5,17 +5,8 @@ export default class ProductsController {
     async index({params}:HttpContext){
         const product = await Product.query()
         .where('category_id',params.id)
-        .select('id','name','description','price','ImageUrl','is_available')
+        // .select('id','name','description','price','ImageUrl','is_available')
         .orderBy('id','asc')
-
-        // const product = await Product.findBy('category_id',params.id)
-        // response.json({
-        //     id:product!.id,
-        //     name:product!.name,
-        //     description:product!.description,
-        //     price:product!.price,
-        //     ImageUrl:product!.Imageurl
-        // })
 
         return product;
     }

@@ -2,6 +2,7 @@
 import { inject } from '@adonisjs/core';
 import CategoryService from '../services/category_service.js';
 import { HttpContext } from '@adonisjs/core/http';
+
 @inject()
 export default class CategoriesController {
     constructor(protected categoryService:CategoryService){}

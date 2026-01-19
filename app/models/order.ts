@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo, hasMany} from '@adonisjs/lucid/orm'
-import type{ BelongsTo,HasMany } from '@adonisjs/lucid/types/relations'
+import type{ HasMany } from '@adonisjs/lucid/types/relations'
 import type { BelongsTo as BelongsToType } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
 import Cart from './cart.js'
@@ -26,7 +26,9 @@ export default class Order extends BaseModel {
   @column()
   declare status: string
 
-  @belongsTo(() => Address)
+  @belongsTo(() => Address,{
+    foreignKey: 'AddressId'   
+  })
   declare address: BelongsToType<typeof Address>
 
   @belongsTo(() => Cart)

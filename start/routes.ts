@@ -15,6 +15,7 @@ import AuthController from '#controllers/auth_controller'
 import CartController from '#controllers/carts_controller';
 import OrderController from '#controllers/orders_controller';
 import AddressController from '#controllers/addresses_controller';
+
 router.group(() => {
   router.get('/', [CategoriesController,'index'])
   router.get('/:id', [CategoriesController,'show'])
@@ -30,6 +31,8 @@ router.group(()=>{
   router.post('/signup',[AuthController,'register'])
   router.get('/logout',[AuthController,'logout']).use(middleware.auth({ guards: ['api'] }))
   router.get('/me',[AuthController,'me']).use(middleware.auth({ guards: ['api'] }))
+  router.get('/pdf',[AuthController,'exportAllUsersPdf'])
+  router.get('/excel',[AuthController,'exportexcel'])
 }).prefix('auth')
 
 router.group(() => {
@@ -43,8 +46,11 @@ router.group(() => {
   router.post('/:userId', [OrderController, 'store'])
   router.get('/:userId', [OrderController, 'Allorder'])
   router.get('/:userId/:id', [OrderController, 'show'])
+  router.get('/orders/export-excel', [OrderController, 'exportUserOrdersExcel'])
+  router.get('/orders/export-all-pdf', [OrderController, 'exportAllOrdersPdf'])
 }).prefix('orders')
 
 router.group(() => {
-  router.post('/addresses/:userId', [AddressController, 'store'])
-}).prefix('/api')
+  router.post('/:userId', [AddressController, 'store'])
+  router.get('/show/:userId',[AddressController,'showAddress'])
+}).prefix('/addresses')
